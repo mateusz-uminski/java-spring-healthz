@@ -1,0 +1,32 @@
+name: verify
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: corretto
+          java-version: '17'
+
+      - run: ./gradlew clean build --no-daemon
+
+      - run: ./gradlew test jacocoTestReport
+
+  docker-build:
+    needs: tests
+    uses: mateusz-uminski/github-actions/.github/workflows/build-docker-image.yaml@main
+    with:
+      runner: ubuntu-22.04
+      path: "."
+      tag: latest
